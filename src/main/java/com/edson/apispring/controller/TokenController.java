@@ -2,6 +2,7 @@ package com.edson.apispring.controller;
 
 import com.edson.apispring.controller.dto.LoginRequest;
 import com.edson.apispring.controller.dto.LoginResponse;
+import com.edson.apispring.entitis.Role;
 import com.edson.apispring.repository.UserRepository;
 import org.apache.juli.logging.Log;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 @RestController
 public class TokenController {
@@ -41,9 +43,15 @@ public class TokenController {
         var now = Instant.now();
         var expiresIn = 300L;
 
+        var scopes = user.get().getRoles()
+                .stream()
+                .map(Role::getName)
+                .collect(Collectors.joining(" "));
+
         var claims = JwtClaimsSet.builder()
                 .issuer("api")
                 .subject(user.get().getUserId().toString())
+                .claim("scope", scopes)
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(expiresIn))
                 .build();
